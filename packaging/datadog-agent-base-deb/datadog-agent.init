@@ -11,6 +11,7 @@
 ### END INIT INFO
 
 . /lib/lsb/init-functions
+PATH=$PATH:/sbin # add the location of start-stop-daemon on Debian
 
 AGENTPATH="/usr/bin/dd-agent"
 DOGSTATSDPATH="/usr/bin/dogstatsd"
@@ -25,10 +26,7 @@ SUPERVISOR_FILE="/etc/dd-agent/supervisor_ddagent.conf"
 SUPERVISOR_SOCK="/var/tmp/datadog-supervisor.sock"
 SUPERVISORD="/usr/bin/supervisord"
 
-if [ ! -f $AGENTCONF ]; then
-    echo "$AGENTCONF not found! Exiting."
-    exit 1
-fi
+[ -x $AGENTPATH ] || echo "$AGENTPATH not found"
 
 check_status() {
     if [ -f $USE_SUPERVISOR ]; then
