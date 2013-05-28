@@ -16,7 +16,6 @@ PATH=$PATH:/sbin # add the location of start-stop-daemon on Debian
 AGENTPATH="/usr/bin/dd-agent"
 DOGSTATSDPATH="/usr/bin/dogstatsd"
 AGENTUSER="dd-agent"
-AGENTCONF="/etc/dd-agent/datadog.conf"
 USE_SUPERVISOR="/usr/bin/dd-forwarder"
 NAME="datadog-agent"
 DESC="Datadog agent"

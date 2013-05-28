@@ -14,7 +14,10 @@ case "$1" in
         chown -h root:root /usr/bin/dd-agent
         chown -h root:root /usr/bin/dd-forwarder
 
-        /etc/init.d/datadog-agent start
+        # Since we call this script from install_agent.sh, we don't want to
+        # start the agent here. We need install_agent.sh to update datadog.conf before
+        # the agent will start successfully, which is done after this script is
+        # run.
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
