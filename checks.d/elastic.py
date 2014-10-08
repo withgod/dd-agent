@@ -155,7 +155,9 @@ class ElasticSearch(AgentCheck):
 
         # Load stats data.
         url = urlparse.urljoin(config_url, self.STATS_URL)
+        self.log.debug("Stats url: %s", url)
         stats_data = self._get_data(url, auth)
+        self.log.debug("Stats data: %s", stats_data)
         self._process_stats_data(config_url, stats_data, auth, tags=tags,
                                  is_external=is_external)
 
