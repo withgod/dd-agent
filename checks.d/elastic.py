@@ -157,14 +157,21 @@ class ElasticSearch(AgentCheck):
         url = urlparse.urljoin(config_url, self.STATS_URL)
         self.log.debug("Stats url: %s", url)
         stats_data = self._get_data(url, auth)
-        self.log.debug("Stats data: %s", stats_data)
+        self.metrics_to_find = [m for m in self.METRICS]
+        self.log.debug("#METRICS TO FIND %s", len(self.metrics_to_find))
         self._process_stats_data(config_url, stats_data, auth, tags=tags,
                                  is_external=is_external)
-
+        self.log.debug("#METRICS TO FIND %s", len(self.metrics_to_find))
         # Load the health data.
         url = urlparse.urljoin(config_url, self.HEALTH_URL)
+        self.log.debug("Health url: %s", url)
         health_data = self._get_data(url, auth)
         self._process_health_data(config_url, health_data, tags=tags, service_check_tags=service_check_tags)
+        self.log.debug("#METRICS TO FIND %s", len(self.metrics_to_find))
+        if len(self.metrics_to_find) > 0:
+            self.log.debug("METRICS TO FIND: %s", self.metrics_to_find)
+            self.log.debug("STATS DATA: %s", stats_data)
+            self.log.debug("HEALTH DATA: %s", health_data)
 
     def _get_es_version(self, config_url, auth=None):
         """ Get the running version of Elastic Search.
@@ -344,6 +351,7 @@ class ElasticSearch(AgentCheck):
                 break
 
         if value is not None:
+            self.metrics_to_find.remove(metric)
             if xform: value = xform(value)
             if xtype == "gauge":
                 self.gauge(metric, value, tags=tags)
