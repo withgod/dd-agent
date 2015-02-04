@@ -13,6 +13,7 @@ import redis
 
 class Redis(AgentCheck):
     db_key_pattern = re.compile(r'^db\d+')
+    slave_key_pattern = re.compile(r'^slave\d+')
     subkeys = ['keys', 'expires']
 
     SOURCE_TYPE_NAME = 'redis'
@@ -63,7 +64,9 @@ class Redis(AgentCheck):
         'master_last_io_seconds_ago':   'redis.replication.last_io_seconds_ago',
         'master_sync_in_progress':      'redis.replication.sync',
         'master_sync_left_bytes':       'redis.replication.sync_left_bytes',
-
+        'repl_backlog_histlen':         'redis.replication.backlog_histlen',
+        'master_repl_offset':           'redis.replication.master_repl_offset',
+        'slave_repl_offset':            'redis.replication.slave_repl_offset',
     }
 
     RATE_KEYS = {
@@ -214,6 +217,17 @@ class Redis(AgentCheck):
                         if instance.get("warn_on_missing_keys", True):
                             self.warning("{0} key not found in redis".format(key))
                         self.gauge('redis.key.length', 0, tags=key_tags)
+
+        # Save the replication delay for each slave
+        for key in info:
+            if self.slave_key_pattern.match(key) and isinstance(info[key], dict):
+                slave_offset = info[key].get('offset')
+                master_offset = info.get('master_repl_offset')
+                if slave_offset and master_offset and master_offset - slave_offset >= 0:
+                    delay = master_offset - slave_offset
+                    slave_tags = tags + ['slave_ip:%s' % info[key]['ip']] if 'ip' in info[key] else tags
+                    slave_tags.append('slave_id:%s' % key.lstrip('slave'))
+                    self.gauge('redis.replication.delay.%s' % key, delay, tags=slave_tags)
 
     def check(self, instance):
         if (not "host" in instance or not "port" in instance) and not "unix_socket_path" in instance:
