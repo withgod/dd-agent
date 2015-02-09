@@ -8,12 +8,12 @@ install_dir=/opt/datadog-agent
 dmg_file=/tmp/datadog-agent.dmg
 dmg_url="http://"
 
-# Log all output to a log for error checking
-tee <$npipe $logfile &
-exec 1>&-
-exec 1>$npipe 2>&1
-trap "rm -f $npipe" EXIT
-
+# Root user detection
+if [ $(echo "$UID") = "0" ]; then
+    sudo_cmd=''
+else
+    sudo_cmd='sudo'
+fi
 
 function on_error() {
     printf "\033[31m$ERROR_MESSAGE
@@ -41,7 +41,7 @@ fi
 # Install the agent
 printf "\033[34m\n* Downdloading and installing datadog-agent\n\033[0m"
 $sudo_cmd rm -f $dmg_file
-$dl_cmd $dmg_url $dmg_file
+curl -O $dmg_file $dmg_url
 $sudo_cmd hdiutil detach "/Volumes/datadog_agent" >/dev/null 2>&1 || true
 $sudo_cmd hdiutil attach "$dmg_file" -mountpoint "/Volumes/datadog_agent"
 cd / && $sudo_cmd /usr/sbin/installer -pkg `find "/Volumes/datadog_agent" -name \*.pkg` -target /
@@ -56,7 +56,8 @@ else
 fi
 
 printf "\033[34m* Starting the Agent...\n\033[0m\n"
-$sudo_cmd /usr/bin/datadog-agent restart
+$sudo_cmd /usr/bin/datadog-agent stop
+$sudo_cmd /usr/bin/datadog-agent start
 
 # Wait for metrics to be submitted by the forwarder
 printf "\033[32m
