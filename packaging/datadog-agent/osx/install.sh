@@ -6,7 +6,7 @@ gist_request=/tmp/agent-gist-request.tmp
 gist_response=/tmp/agent-gist-response.tmp
 install_dir=/opt/datadog-agent
 dmg_file=/tmp/datadog-agent.dmg
-dmg_url="http://"
+dmg_url="https://s3.amazonaws.com/dd-pastebin/remi/datadog-agent-5.1.1-alpha.dmg"
 
 # Root user detection
 if [ $(echo "$UID") = "0" ]; then
@@ -41,11 +41,11 @@ fi
 # Install the agent
 printf "\033[34m\n* Downdloading and installing datadog-agent\n\033[0m"
 $sudo_cmd rm -f $dmg_file
-curl -O $dmg_file $dmg_url
+curl $dmg_url > $dmg_file
 $sudo_cmd hdiutil detach "/Volumes/datadog_agent" >/dev/null 2>&1 || true
-$sudo_cmd hdiutil attach "$dmg_file" -mountpoint "/Volumes/datadog_agent"
-cd / && $sudo_cmd /usr/sbin/installer -pkg `find "/Volumes/datadog_agent" -name \*.pkg` -target /
-$sudo_cmd hdiutil detach "/Volumes/datadog_agent"
+$sudo_cmd hdiutil attach "$dmg_file" -mountpoint "/Volumes/datadog_agent" >/dev/null
+cd / && $sudo_cmd /usr/sbin/installer -pkg `find "/Volumes/datadog_agent" -name \*.pkg 2>/dev/null` -target / >/dev/null
+$sudo_cmd hdiutil detach "/Volumes/datadog_agent" >/dev/null
 
 # Set the configuration
 if [ -e /etc/dd-agent/datadog.conf ]; then
@@ -56,8 +56,8 @@ else
 fi
 
 printf "\033[34m* Starting the Agent...\n\033[0m\n"
-$sudo_cmd /usr/bin/datadog-agent stop
-$sudo_cmd /usr/bin/datadog-agent start
+$sudo_cmd /usr/bin/datadog-agent stop >/dev/null
+$sudo_cmd /usr/bin/datadog-agent start >/dev/null
 
 # Wait for metrics to be submitted by the forwarder
 printf "\033[32m
