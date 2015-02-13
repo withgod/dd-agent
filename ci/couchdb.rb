@@ -28,37 +28,36 @@ namespace :ci do
         sh %(curl -s -L\
              -o $VOLATILE_DIR/icu.tar.gz\
              http://download.icu-project.org/files/icu4c/54.1/icu4c-54_1-src.tgz)
-        sh %(mkdir -p #{couchdb_rootdir}/js)
-        sh %(mkdir -p #{couchdb_rootdir}/icu)
-        sh %(mkdir -p #{couchdb_rootdir}/erlang)
         sh %(mkdir -p $VOLATILE_DIR/couchdb)
         sh %(mkdir -p $VOLATILE_DIR/js185)
         sh %(mkdir -p $VOLATILE_DIR/icu)
         sh %(mkdir -p $VOLATILE_DIR/erlang)
         sh %(tar zxvf $VOLATILE_DIR/erlang.tar.gz\
              -C $VOLATILE_DIR/erlang --strip-components=1)
-        sh %(cd $VOLATILE_DIR/erlang\
-             && ./configure --prefix=#{couchdb_rootdir}/erlang\
-             && make -j $CONCURRENCY\
-             && make install)
         sh %(tar zxvf $VOLATILE_DIR/couchdb-#{couchdb_version}.tar.gz\
              -C $VOLATILE_DIR/couchdb --strip-components=1)
         sh %(tar zxvf $VOLATILE_DIR/js185.tar.gz\
              -C $VOLATILE_DIR/js185 --strip-components=1)
         sh %(tar zxvf $VOLATILE_DIR/icu.tar.gz\
              -C $VOLATILE_DIR/icu --strip-components=1)
+        sh %(cd $VOLATILE_DIR/erlang\
+             && ./configure --prefix=#{couchdb_rootdir}/\
+             && make -j $CONCURRENCY\
+             && make install)
         sh %(cd $VOLATILE_DIR/js185/js/src\
-             && ./configure --prefix=#{couchdb_rootdir}/js\
+             && ./configure --prefix=#{couchdb_rootdir}/\
              && make -j $CONCURRENCY\
              && make install)
         sh %(cd $VOLATILE_DIR/icu/source\
-             && ./configure --prefix=#{couchdb_rootdir}/icu\
+             && ./configure --prefix=#{couchdb_rootdir}/\
              && make -j $CONCURRENCY\
              && make install)
-        sh %(cp -R $VOLATILE_DIR/erlang/lib/public_key $VOLATILE_DIR/couchdb/src/erlang-oauth/)
-        ENV['ICU_CONFIG'] = "#{couchdb_rootdir}/icu/bin/icu-config"
+        ENV['PATH'] = "#{couchdb_rootdir}/bin:#{ENV['PATH']}"
+        ENV['LD_LIBRARY_PATH'] = "#{couchdb_rootdir}/lib:#{ENV['LD_LIBRARY_PATH']}"
+        # For macs
+        ENV['DYLD_LIBRARY_PATH'] = "#{couchdb_rootdir}/lib:#{ENV['DYLD_LIBRARY_PATH']}"
         sh %(cd $VOLATILE_DIR/couchdb\
-             && ./configure --prefix=#{couchdb_rootdir} --with-erlang=$VOLATILE_DIR/erlang/lib/ --with-js-lib=#{couchdb_rootdir}/js/lib --with-js-include=#{couchdb_rootdir}/js/include/js\
+             && ./configure --prefix=#{couchdb_rootdir} --with-js-lib=#{couchdb_rootdir}/lib --with-js-include=#{couchdb_rootdir}/include/js\
              && make -j $CONCURRENCY\
              && make install)
       end
