@@ -49,6 +49,7 @@ class TestPostgres(unittest.TestCase):
         self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.total_size'])                >= 1, pprint(metrics))
         self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.max_connections'])           >= 1, pprint(metrics))
         self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.percent_usage_connections']) >= 1, pprint(metrics))
+        self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.total_tables'])              >= 1, pprint(metrics))
         self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.db.count']) == 1, pprint(metrics))
         # Don't test for locks
         # self.assertTrue(len([m for m in metrics if m[0] == u'postgresql.locks'])              >= 1, pprint(metrics))

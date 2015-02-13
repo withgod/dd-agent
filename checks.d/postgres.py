@@ -168,10 +168,26 @@ WHERE nspname NOT IN ('pg_catalog', 'information_schema') AND
   relname = ANY(%s)"""
     }
 
+    COUNT_METRICS = {
+        'descriptors': [
+            ('schemaname', 'schema')
+        ],
+        'metrics': {
+            'pg_stat_user_tables': ('postgresql.total_tables', GAUGE),
+        },
+        'relation': False,
+        'query': """
+SELECT schemaname, count(*)
+FROM %s
+GROUP BY schemaname
+        """
+    }
+
     REPLICATION_METRICS = {
         'descriptors': [],
         'metrics': {
-            'GREATEST(0, EXTRACT(EPOCH FROM now() - pg_last_xact_replay_timestamp())) AS replication_delay': ('postgresql.replication_delay', GAUGE),
+            'CASE WHEN pg_last_xlog_receive_location() = pg_last_xlog_replay_location() THEN 0 ELSE GREATEST (0, EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp())) END': ('postgresql.replication_delay', GAUGE),
+            'abs(pg_xlog_location_diff(pg_last_xlog_receive_location(), pg_last_xlog_replay_location())) AS replication_delay_bytes': ('postgres.replication_delay_bytes', GAUGE)
         },
         'relation': False,
         'query': """
@@ -269,7 +285,8 @@ SELECT %s
             self.DB_METRICS,
             self.CONNECTION_METRICS,
             self.BGW_METRICS,
-            self.LOCK_METRICS
+            self.LOCK_METRICS,
+            self.COUNT_METRICS
         ]
 
         # Do we need relation-specific metrics?
