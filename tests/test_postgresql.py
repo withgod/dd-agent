@@ -63,7 +63,7 @@ class TestPostgres(unittest.TestCase):
         self.check.run()
         metrics = self.check.get_metrics()
 
-        exp_metrics = 37
+        exp_metrics = 38
         exp_db_tagged_metrics = 24
 
         if self.check._is_9_2_or_above(key, db):
@@ -71,7 +71,7 @@ class TestPostgres(unittest.TestCase):
         else:
             if not self.check._is_9_1_or_above(key, db):
                 # No replication metric
-                exp_metrics -= 1
+                exp_metrics -= 2
 
             # Not all bgw metrics
             exp_metrics -= 2
