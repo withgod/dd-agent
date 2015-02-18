@@ -12,6 +12,8 @@ class PostfixCheck(AgentCheck):
 
     example /etc/sudoers entry:
              dd-agent ALL=(ALL) NOPASSWD:/usr/bin/find
+    add this line if running at centos(amazon linux)
+             Defaults:dd-agent !requiretty
 
     YAML config options:
         "directory" - the value of 'postconf -h queue_directory'
